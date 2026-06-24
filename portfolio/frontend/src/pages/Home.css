@@ -1,0 +1,137 @@
+.hero {
+  padding: 80px 0 60px;
+  min-height: calc(100vh - 68px);
+  display: flex;
+  align-items: center;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.hero-title {
+  font-size: clamp(34px, 4.6vw, 54px);
+  margin: 18px 0 22px;
+  color: var(--text-primary);
+}
+
+.hero-accent {
+  color: var(--accent);
+}
+
+.hero-sub {
+  color: var(--text-secondary);
+  font-size: 16.5px;
+  max-width: 460px;
+  margin-bottom: 32px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ===== Scan Panel — signature element ===== */
+.scan-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.scan-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+
+.scan-corner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--accent);
+  opacity: 0.85;
+}
+
+.scan-corner.tl { top: 14px; left: 14px; border-right: none; border-bottom: none; }
+.scan-corner.tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
+.scan-corner.bl { bottom: 14px; left: 14px; border-right: none; border-top: none; }
+.scan-corner.br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
+
+.scan-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 16px var(--accent-glow);
+  animation: scanmove 2.6s ease-in-out infinite;
+}
+
+@keyframes scanmove {
+  0% { top: 8%; }
+  50% { top: 88%; }
+  100% { top: 8%; }
+}
+
+.scan-id {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scan-id-label {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.scan-id-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.scan-log {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  min-height: 108px;
+}
+
+.scan-log-line {
+  margin-bottom: 6px;
+}
+
+.scan-log-line.ok {
+  color: var(--success);
+}
+
+.scan-log-prefix {
+  color: var(--accent);
+}
+
+@media (max-width: 880px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    padding: 48px 0;
+  }
+}
