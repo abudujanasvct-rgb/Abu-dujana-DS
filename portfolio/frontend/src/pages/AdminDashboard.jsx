@@ -26,6 +26,9 @@ export default function AdminDashboard() {
   const [form, setForm] = useState(EMPTY_PROJECT);
   const [feedback, setFeedback] = useState('');
   const [deviceFeedback, setDeviceFeedback] = useState('');
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwFeedback, setPwFeedback] = useState('');
+  const [pwStatus, setPwStatus] = useState('idle');
 
   useEffect(() => {
     loadProjects();
@@ -84,16 +87,61 @@ export default function AdminDashboard() {
     loadProjects();
   }
 
-  async function handleRegisterDevice() {
+  const [showDeviceNameInput, setShowDeviceNameInput] = useState(false);
+  const [deviceName, setDeviceName] = useState('');
+  const [registrationOptions, setRegistrationOptions] = useState(null);
+
+  async function startDeviceRegistration() {
     setDeviceFeedback('');
     try {
       const options = await api.webauthnRegisterOptions();
-      const regResp = await startRegistration(options);
-      const label = prompt('Name this device (e.g. "My Phone"):') || 'New device';
-      await api.webauthnRegisterVerify({ ...regResp, deviceLabel: label });
-      setDeviceFeedback('Device registered. You can now sign in with fingerprint/Face ID on it.');
+      setRegistrationOptions(options);
+      setShowDeviceNameInput(true);
     } catch (err) {
-      setDeviceFeedback(err.message || 'Could not register device.');
+      setDeviceFeedback(err.message || 'Could not start device registration.');
+    }
+  }
+
+  async function handleRegisterDevice(e) {
+    e.preventDefault();
+    if (!registrationOptions) return;
+    setDeviceFeedback('');
+    try {
+      const regResp = await startRegistration(registrationOptions);
+      await api.webauthnRegisterVerify({ ...regResp, deviceLabel: deviceName || 'New device' });
+      setDeviceFeedback('Device registered. You can now sign in with fingerprint on it.');
+      setShowDeviceNameInput(false);
+      setDeviceName('');
+      setRegistrationOptions(null);
+    } catch (err) {
+      setDeviceFeedback(
+        err.name === 'NotAllowedError'
+          ? 'Fingerprint scan was cancelled or not completed in time.'
+          : err.message || `Registration failed: ${err.name || 'unknown error'}`
+      );
+    }
+  }
+
+  async function handlePasswordChange(e) {
+    e.preventDefault();
+    setPwFeedback('');
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwFeedback('New passwords do not match.');
+      return;
+    }
+    if (pwForm.newPassword.length < 10) {
+      setPwFeedback('New password must be at least 10 characters.');
+      return;
+    }
+    setPwStatus('loading');
+    try {
+      await api.changePassword(pwForm.currentPassword, pwForm.newPassword);
+      setPwFeedback('Password changed successfully.');
+      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setPwFeedback(err.message || 'Could not change password.');
+    } finally {
+      setPwStatus('idle');
     }
   }
 
@@ -215,16 +263,86 @@ export default function AdminDashboard() {
 
         {tab === 'security' && (
           <div className="dashboard-security">
-            <h2 className="dashboard-form-title">Register a New Device</h2>
+            <h2 className="dashboard-form-title">Change Password</h2>
+            <form className="contact-form" onSubmit={handlePasswordChange} style={{ maxWidth: 420 }}>
+              <label className="contact-label">Current Password</label>
+              <input
+                className="contact-input"
+                type="password"
+                value={pwForm.currentPassword}
+                onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+                required
+              />
+              <label className="contact-label">New Password</label>
+              <input
+                className="contact-input"
+                type="password"
+                value={pwForm.newPassword}
+                onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                required
+                minLength={10}
+              />
+              <label className="contact-label">Confirm New Password</label>
+              <input
+                className="contact-input"
+                type="password"
+                value={pwForm.confirmPassword}
+                onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                required
+                minLength={10}
+              />
+              <button type="submit" className="btn btn-primary" style={{ marginTop: 16 }} disabled={pwStatus === 'loading'}>
+                {pwStatus === 'loading' ? 'Updating…' : 'Update Password'}
+              </button>
+              {pwFeedback && (
+                <p className={`contact-feedback mono ${pwFeedback.includes('success') ? 'ok' : 'error'}`}>
+                  {pwFeedback}
+                </p>
+              )}
+            </form>
+
+            <h2 className="dashboard-form-title" style={{ marginTop: 36 }}>Register a New Device</h2>
             <p className="contact-sub">
-              Add fingerprint / Face ID access for a new phone or laptop. You must already be
+              Add fingerprint access for a new phone or laptop. You must already be
               logged in to do this — this prevents anyone else from adding their own biometric
               access to your account.
             </p>
-            <button className="btn btn-primary" onClick={handleRegisterDevice}>
-              Register This Device
-            </button>
-            {deviceFeedback && <p className="contact-feedback ok mono">{deviceFeedback}</p>}
+
+            {!showDeviceNameInput ? (
+              <button className="btn btn-primary" onClick={startDeviceRegistration}>
+                Register This Device
+              </button>
+            ) : (
+              <form onSubmit={handleRegisterDevice} style={{ maxWidth: 360, marginTop: 12 }}>
+                <label className="contact-label">Device Name</label>
+                <input
+                  className="contact-input"
+                  value={deviceName}
+                  onChange={(e) => setDeviceName(e.target.value)}
+                  placeholder="e.g. My Phone"
+                  autoFocus
+                  required
+                />
+                <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+                  <button type="submit" className="btn btn-primary">
+                    Scan Fingerprint
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => { setShowDeviceNameInput(false); setRegistrationOptions(null); }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {deviceFeedback && (
+              <p className={`contact-feedback mono ${deviceFeedback.includes('registered') ? 'ok' : 'error'}`}>
+                {deviceFeedback}
+              </p>
+            )}
           </div>
         )}
       </div>
