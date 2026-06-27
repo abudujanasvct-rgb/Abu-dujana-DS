@@ -17,15 +17,22 @@ connectDB();
 app.use(helmet());
 
 // Lock CORS down to only your real frontend domain(s)
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173').split(',');
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, '')); // trim whitespace and any trailing slash
+
+console.log('Allowed CORS origins:', allowedOrigins);
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+      if (!origin) return callback(null, true); // allow non-browser tools (curl, health checks)
+      const cleanOrigin = origin.replace(/\/$/, '');
+      if (allowedOrigins.includes(cleanOrigin)) {
+        return callback(null, true);
       }
+      console.log('Blocked CORS request from origin:', origin);
+      return callback(null, false); // reject without throwing, avoids 500 error
     },
     credentials: true
   })
