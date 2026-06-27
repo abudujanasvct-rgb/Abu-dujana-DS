@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import './Home.css';
 
 const SCAN_LINES = [
-  'INITIALIZING IDENTITY SCAN...',
-  'ANALYZING FACIAL VECTOR MAP...',
+  'INITIALIZING SYSTEM CHECK...',
+  'AUTHENTICATING ENGINEER PROFILE...',
   'CROSS-REFERENCING PROJECT HISTORY...',
   'MATCH FOUND.'
 ];
@@ -28,7 +28,7 @@ export default function Home() {
     <section className="hero">
       <div className="container hero-grid">
         <div className="hero-copy">
-          <span className="eyebrow">AI / ML Engineer &middot; Cybersecurity</span>
+          <span className="eyebrow">AI / ML Engineer</span>
 
           <h1 className="hero-title">
             I build systems
@@ -41,8 +41,8 @@ export default function Home() {
 
           <p className="hero-sub">
             Abu Dujana — a pre-final year AI &amp; Data Science engineer who ships real,
-            working systems: NLP pipelines, ML dashboards, and a facial-recognition
-            security layer that's actually deployed below, scanning you right now.
+            working systems: NLP pipelines, ML dashboards, and full-stack tools secured
+            with fingerprint authentication, like the admin system running this very site.
           </p>
 
           <div className="hero-actions">
