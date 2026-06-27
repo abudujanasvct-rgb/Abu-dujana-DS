@@ -10,9 +10,18 @@ const SCAN_LINES = [
   'MATCH FOUND.'
 ];
 
+// Drop your photos in /public/photos/ and list the filenames here.
+// Works with 1 photo (no slideshow) or several (auto-rotates every 3.5s).
+const PROFILE_PHOTOS = [
+  '/photos/profile-1.jpg',
+  '/photos/profile-2.jpg',
+  '/photos/profile-3.jpg'
+];
+
 export default function Home() {
   const [lineIndex, setLineIndex] = useState(0);
   const [scanned, setScanned] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     if (lineIndex < SCAN_LINES.length - 1) {
@@ -23,6 +32,15 @@ export default function Home() {
       return () => clearTimeout(t);
     }
   }, [lineIndex]);
+
+  // Slideshow rotation - only matters if there's more than one photo
+  useEffect(() => {
+    if (PROFILE_PHOTOS.length <= 1) return;
+    const interval = setInterval(() => {
+      setPhotoIndex((i) => (i + 1) % PROFILE_PHOTOS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="hero">
@@ -62,6 +80,17 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <div className="scan-frame">
+            {PROFILE_PHOTOS.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                className={`scan-photo${i === photoIndex ? ' active' : ''}`}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ))}
+            <div className="scan-photo-overlay" />
+
             <div className="scan-corner tl" />
             <div className="scan-corner tr" />
             <div className="scan-corner bl" />
